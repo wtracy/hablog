@@ -27,7 +27,7 @@ doNext Nothing = nextText
 doNext (Just next) = link next nextText
 
 navigation :: Maybe String -> Maybe String -> String
-navigation prev next = "<div align=\"center\">" ++ (doPrev prev) ++ " | " ++ (doNext next) ++ "</div>"
+navigation prev next = "<div class=\"nav\">" ++ (doPrev prev) ++ " | " ++ (doNext next) ++ "</div>"
 
 --publishEntry :: String -> IO ()
 publishEntry previous entry next = do
@@ -37,7 +37,7 @@ publishEntry previous entry next = do
   body <- hGetContents input
   hPutStr output "<html><head><title>"
   hPutStr output header
-  hPutStr output "</title><body>"
+  hPutStr output "</title><style type=\"text/css\">.nav {font-family: sans-serif; padding: 5px; background-color: #E0E0E0; margin-left: auto; margin-right: auto; width: 10em; text-align: center; border-radius: 10px; border-style: solid; border-color: #000000; border-width: 0px}</style><body>"
   hPutStr output (navigation previous next)
   hPutStr output body
   hPutStr output (navigation previous next)
