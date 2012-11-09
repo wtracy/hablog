@@ -5,6 +5,8 @@ import Control.Monad
 inputIndex = "index"
 outputIndex = "index.html"
 outputDir = "output"
+prevText = "&lt; Prev"
+nextText = "Next &gt;"
 
 getEntries :: IO [String]
 getEntries = do
@@ -13,30 +15,73 @@ getEntries = do
   let entries = lines content
   return (entries)
 
- 
-publishEntry :: String -> IO ()
-publishEntry entry = do
+link :: String -> String -> String
+link url text = "<a href=\"" ++ url ++ "\">" ++ text ++ "</a>"
+
+doPrev :: Maybe String -> String
+doPrev Nothing = prevText
+doPrev (Just prev) = link prev prevText
+
+doNext :: Maybe String -> String
+doNext Nothing = nextText
+doNext (Just next) = link next nextText
+
+navigation :: Maybe String -> Maybe String -> String
+navigation prev next = "<div align=\"center\">" ++ (doPrev prev) ++ " | " ++ (doNext next) ++ "</div>"
+
+--publishEntry :: String -> IO ()
+publishEntry previous entry next = do
   input <- openFile entry ReadMode 
   output <- openFile (outputDir ++ "/" ++ entry) WriteMode
   header <- hGetLine input 
   body <- hGetContents input
+  hPutStr output "<html><head><title>"
+  hPutStr output header
+  hPutStr output "</title><body>"
+  hPutStr output (navigation previous next)
   hPutStr output body
+  hPutStr output (navigation previous next)
+  hPutStr output "</body></html>"
   hClose input
   hClose output
+
+getTitle :: String -> IO String
+getTitle entry = do
+  handle <- openFile entry ReadMode
+  hGetLine handle
+
+writeIndexEntry :: Handle -> String -> IO ()
+writeIndexEntry handle entry = do
+  title <- getTitle entry
+  hPutStr handle "<li>"
+  hPutStr handle (link entry title)
+  hPutStr handle "</li>"
 
 publishIndex :: [String] -> IO ()
 publishIndex entries = do
   handle <- openFile (outputDir ++ "/" ++ outputIndex) WriteMode
-  forM entries (hPutStrLn handle)
+  hPutStr handle "<html><head><title>Blog Index</title></head><body><ul>"
+  forM entries (writeIndexEntry handle)
+  hPutStr handle "</ul></body></html>"
   hClose handle
 
 prepOutput :: IO ()
 prepOutput = createDirectoryIfMissing True outputDir
 
+doPublish :: Maybe String -> [String] -> IO()
+doPublish previous [entry] = publishEntry previous entry Nothing
+doPublish previous (entry:next:remainder) = do
+  publishEntry previous entry (Just next)
+  doPublish (Just entry) (next:remainder)
+
+publish :: [String] -> IO()
+publish entries = doPublish Nothing entries
+
 main :: IO()
 main = do
   entries <- getEntries
   prepOutput
-  mapM publishEntry entries
+  publish entries
+  --mapM publishEntry entries
   publishIndex entries
   putStr "Done!\n"
