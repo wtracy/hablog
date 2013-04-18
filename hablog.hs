@@ -18,10 +18,12 @@ getEntries = do
 link :: String -> String -> String
 link url text = "<a href=\"" ++ url ++ "\">" ++ text ++ "</a>"
 
+{- builds the "previous" link -}
 doPrev :: Maybe String -> String
 doPrev Nothing = prevText
 doPrev (Just prev) = link prev prevText
 
+{- builds the "next" link -}
 doNext :: Maybe String -> String
 doNext Nothing = nextText
 doNext (Just next) = link next nextText
@@ -31,13 +33,14 @@ navigation prev next = "<div class=\"nav\">" ++ (doPrev prev) ++ " | " ++ (doNex
 
 --publishEntry :: String -> IO ()
 publishEntry previous entry next = do
+  putStrLn ("Publishing " ++ entry)
   input <- openFile entry ReadMode 
   output <- openFile (outputDir ++ "/" ++ entry) WriteMode
   header <- hGetLine input 
   body <- hGetContents input
   hPutStr output "<html><head><title>"
   hPutStr output header
-  hPutStr output "</title><style type=\"text/css\">.nav {font-family: sans-serif; padding: 5px; background-color: #E0E0E0; margin-left: auto; margin-right: auto; width: 10em; text-align: center; border-radius: 10px; border-style: solid; border-color: #000000; border-width: 0px}</style><body>"
+  hPutStr output "</title><style type=\"text/css\">.nav {font-family: sans-serif; padding: 5px; background-color: #E0E0E0; margin-left: auto; margin-right: auto; width: 10em; text-align: center; border-radius: 10px; border-style: solid; border-color: #000000; border-width: 0px} pre {background-color: #E0E0E0}</style><body>"
   hPutStr output (navigation previous next)
   hPutStr output body
   hPutStr output (navigation previous next)
@@ -79,9 +82,12 @@ publish entries = doPublish Nothing entries
 
 main :: IO()
 main = do
+  putStrLn "Reading entries ..."
   entries <- getEntries
+  putStrLn "Creating output directory ..."
   prepOutput
+  putStrLn "Publishing entry pages ..."
   publish entries
-  --mapM publishEntry entries
+  putStrLn "Publishing index ..."
   publishIndex entries
-  putStr "Done!\n"
+  putStrLn "Done!"
