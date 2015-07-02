@@ -38,7 +38,7 @@ publishEntry previous entry next = do
   output <- openFile (outputDir ++ "/" ++ entry) WriteMode
   header <- hGetLine input 
   body <- hGetContents input
-  hPutStr output "<html><head><title>"
+  hPutStr output "<!DOCTYPE html>\n<html><head><title>"
   hPutStr output header
   hPutStr output "</title><style type=\"text/css\">.nav {font-family: sans-serif; padding: 5px; background-color: #E0E0E0; margin-left: auto; margin-right: auto; width: 10em; text-align: center; border-radius: 10px; border-style: solid; border-color: #000000; border-width: 0px} pre {background-color: #E0E0E0}</style><body>"
   hPutStr output (navigation previous next)
